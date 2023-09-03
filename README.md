@@ -1,2 +1,2 @@
-# cs440
+# CS440
 uiuc cs440 AI
