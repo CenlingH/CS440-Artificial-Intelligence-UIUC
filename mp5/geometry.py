@@ -112,20 +112,20 @@ if __name__ == '__main__':
     from geometry_test_data import walls, goals, window, alien_positions, alien_ball_truths, alien_horz_truths, \
         alien_vert_truths, point_segment_distance_result, segment_distance_result, is_intersect_result, waypoints
 
-
     # Here we first test your basic geometry implementation
+
     def test_point_segment_distance(points, segments, results):
         num_points = len(points)
         num_segments = len(segments)
         for i in range(num_points):
             p = points[i]
             for j in range(num_segments):
-                seg = ((segments[j][0], segments[j][1]), (segments[j][2], segments[j][3]))
+                seg = ((segments[j][0], segments[j][1]),
+                       (segments[j][2], segments[j][3]))
                 cur_dist = point_segment_distance(p, seg)
                 assert abs(cur_dist - results[i][j]) <= 10 ** -3, \
                     f'Expected distance between {points[i]} and segment {segments[j]} is {results[i][j]}, ' \
                     f'but get {cur_dist}'
-
 
     def test_do_segments_intersect(center: List[Tuple[int]], segments: List[Tuple[int]],
                                    result: List[List[List[bool]]]):
@@ -136,13 +136,13 @@ if __name__ == '__main__':
                     st = (cx + s[0], cy + s[1])
                     ed = (cx - s[0], cy - s[1])
                     a = (st, ed)
-                    b = ((segments[k][0], segments[k][1]), (segments[k][2], segments[k][3]))
+                    b = ((segments[k][0], segments[k][1]),
+                         (segments[k][2], segments[k][3]))
                     if do_segments_intersect(a, b) != result[i][j][k]:
                         if result[i][j][k]:
                             assert False, f'Intersection Expected between {a} and {b}.'
                         if not result[i][j][k]:
                             assert False, f'Intersection not expected between {a} and {b}.'
-
 
     def test_segment_distance(center: List[Tuple[int]], segments: List[Tuple[int]], result: List[List[float]]):
         for i in range(len(center)):
@@ -152,12 +152,12 @@ if __name__ == '__main__':
                     st = (cx + s[0], cy + s[1])
                     ed = (cx - s[0], cy - s[1])
                     a = (st, ed)
-                    b = ((segments[k][0], segments[k][1]), (segments[k][2], segments[k][3]))
+                    b = ((segments[k][0], segments[k][1]),
+                         (segments[k][2], segments[k][3]))
                     distance = segment_distance(a, b)
                     assert abs(result[i][j][k] - distance) <= 10 ** -3, f'The distance between segment {a} and ' \
                                                                         f'{b} is expected to be {result[i]}, but your' \
                                                                         f'result is {distance}'
-
 
     def test_helper(alien: Alien, position, truths):
         alien.set_alien_pos(position)
@@ -173,13 +173,13 @@ if __name__ == '__main__':
             2], f'is_alien_within_window(alien, window) with alien config {config} returns {in_window_result}, ' \
                 f'expected: {truths[2]}'
 
-
     def test_check_path(alien: Alien, position, truths, waypoints):
         alien.set_alien_pos(position)
         config = alien.get_config()
 
         for i, waypoint in enumerate(waypoints):
-            path_touch_wall_result = does_alien_path_touch_wall(alien, walls, waypoint)
+            path_touch_wall_result = does_alien_path_touch_wall(
+                alien, walls, waypoint)
 
             assert path_touch_wall_result == truths[
                 i], f'does_alien_path_touch_wall(alien, walls, waypoint) with alien config {config} ' \
@@ -188,14 +188,16 @@ if __name__ == '__main__':
 
             # Initialize Aliens and perform simple sanity check.
 
-
-    alien_ball = Alien((30, 120), [40, 0, 40], [11, 25, 11], ('Horizontal', 'Ball', 'Vertical'), 'Ball', window)
+    alien_ball = Alien((30, 120), [40, 0, 40], [
+                       11, 25, 11], ('Horizontal', 'Ball', 'Vertical'), 'Ball', window)
     test_helper(alien_ball, alien_ball.get_centroid(), (False, False, True))
 
-    alien_horz = Alien((30, 120), [40, 0, 40], [11, 25, 11], ('Horizontal', 'Ball', 'Vertical'), 'Horizontal', window)
+    alien_horz = Alien((30, 120), [40, 0, 40], [
+                       11, 25, 11], ('Horizontal', 'Ball', 'Vertical'), 'Horizontal', window)
     test_helper(alien_horz, alien_horz.get_centroid(), (False, False, True))
 
-    alien_vert = Alien((30, 120), [40, 0, 40], [11, 25, 11], ('Horizontal', 'Ball', 'Vertical'), 'Vertical', window)
+    alien_vert = Alien((30, 120), [40, 0, 40], [
+                       11, 25, 11], ('Horizontal', 'Ball', 'Vertical'), 'Vertical', window)
     test_helper(alien_vert, alien_vert.get_centroid(), (True, False, True))
 
     edge_horz_alien = Alien((50, 100), [100, 0, 100], [11, 25, 11], ('Horizontal', 'Ball', 'Vertical'), 'Horizontal',
@@ -210,7 +212,8 @@ if __name__ == '__main__':
 
     centers = alien_positions
     segments = walls
-    test_point_segment_distance(centers, segments, point_segment_distance_result)
+    test_point_segment_distance(
+        centers, segments, point_segment_distance_result)
     test_do_segments_intersect(centers, segments, is_intersect_result)
     test_segment_distance(centers, segments, segment_distance_result)
 
@@ -220,8 +223,10 @@ if __name__ == '__main__':
         test_helper(alien_vert, alien_positions[i], alien_vert_truths[i])
 
     # Edge case coincide line endpoints
-    test_helper(edge_horz_alien, edge_horz_alien.get_centroid(), (True, False, False))
+    test_helper(edge_horz_alien, edge_horz_alien.get_centroid(),
+                (True, False, False))
     test_helper(edge_horz_alien, (110, 55), (True, True, True))
-    test_helper(edge_vert_alien, edge_vert_alien.get_centroid(), (True, False, True))
+    test_helper(edge_vert_alien, edge_vert_alien.get_centroid(),
+                (True, False, True))
 
     print("Geometry tests passed\n")

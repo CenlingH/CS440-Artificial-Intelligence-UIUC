@@ -29,12 +29,16 @@ class Alien:
     def __init__(self, centroid, lengths, widths, shapes, init_shape, window):
 
         self.__centroid = centroid  # centroid of the alien (x,y)
-        self.__widths = widths  # widths of the objects in each shape, in this case (line width, diameter, line width) for (Horizontal,Ball,Vertical)
-        self.__lengths = lengths  # lengths of the line segment in each shape (line length, 0, line length) for (Horizontal, Ball, Vertical).
-        self.__shapes = shapes  # possible shapes that the alien can have, in this case ('Horizontal','Ball','Vertical')
+        # widths of the objects in each shape, in this case (line width, diameter, line width) for (Horizontal,Ball,Vertical)
+        self.__widths = widths
+        # lengths of the line segment in each shape (line length, 0, line length) for (Horizontal, Ball, Vertical).
+        self.__lengths = lengths
+        # possible shapes that the alien can have, in this case ('Horizontal','Ball','Vertical')
+        self.__shapes = shapes
         self.__shape = init_shape
         self.__shapenum = self.__shapes.index(self.__shape)
-        self.__limits = [[0, window[0]], [0, window[1]], [0, len(self.__shapes)]]
+        self.__limits = [[0, window[0]], [
+            0, window[1]], [0, len(self.__shapes)]]
 
     # Returns a tuple with the (x,y) coordinates of the alien's head and tail ((x_head,y_head), (x_tail,y_tail))
     def get_head_and_tail(self):

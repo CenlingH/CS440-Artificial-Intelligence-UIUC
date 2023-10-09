@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to the University of Illinois at Urbana-Champaign
-# 
+#
 # Created by Joshua Levine (joshua45@illinois.edu) and Jiaqi Gun
 """
 This file contains the Maze class, which reads in a maze file and creates
@@ -57,7 +57,8 @@ class Maze:
         # Goals are also viewed as a part of waypoints
         self.__waypoints = waypoints + goals
         self.__valid_waypoints = self.filter_valid_waypoints()
-        self.__start = MazeState(self.__start, self.get_objectives(), 0, self, self.use_heuristic)
+        self.__start = MazeState(
+            self.__start, self.get_objectives(), 0, self, self.use_heuristic)
 
         # self.__dimensions = [len(input_map), len(input_map[0]), len(input_map[0][0])]
         # self.__map = input_map

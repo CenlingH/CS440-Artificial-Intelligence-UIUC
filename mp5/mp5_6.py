@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to the University of Illinois at Urbana-Champaign
-# 
+#
 # Created by Jongdeog Lee (jlee700@illinois.edu) on 09/04/2018
 
 """
@@ -60,14 +60,16 @@ class Application:
                     (0, lims[1], lims[0], lims[1])]
         self.obstacles.extend(boundary)
         self.alien_color = BLACK
-        self.alien = Alien(self.centroid, self.lengths, self.widths, self.alien_shapes, self.alien_shape, self.window)
+        self.alien = Alien(self.centroid, self.lengths, self.widths,
+                           self.alien_shapes, self.alien_shape, self.window)
 
     # Initializes the pygame context and certain properties of the maze
     def initialize(self):
 
         pygame.init()
         self.font = pygame.font.Font('freesansbold.ttf', 10)
-        self.displaySurface = pygame.display.set_mode((self.window[0], self.window[1]), pygame.HWSURFACE)
+        self.displaySurface = pygame.display.set_mode(
+            (self.window[0], self.window[1]), pygame.HWSURFACE)
         self.displaySurface.fill(WHITE)
         pygame.display.flip()
         pygame.display.set_caption(self.windowTitle)
@@ -90,7 +92,8 @@ class Application:
         self.gameLoop()
 
         if not self.__human:
-            maze = Maze(self.alien, self.obstacles, self.waypoints, self.goals, k=5)
+            maze = Maze(self.alien, self.obstacles,
+                        self.waypoints, self.goals, k=5)
             print("Searching the path...")
             try:
                 t1 = time.time()
@@ -132,16 +135,20 @@ class Application:
                 x, y = self.alien.get_centroid()
                 shape = self.alien_shapes.index(self.alien.get_shape())
                 if (keys[K_a]):
-                    x -= granularity if isValueInBetween(self.alien_limits[X], x - granularity) else 0
+                    x -= granularity if isValueInBetween(
+                        self.alien_limits[X], x - granularity) else 0
                 # move right
                 elif (keys[K_d]):
-                    x += granularity if isValueInBetween(self.alien_limits[X], x + granularity) else 0
+                    x += granularity if isValueInBetween(
+                        self.alien_limits[X], x + granularity) else 0
                 # move down
                 elif (keys[K_s]):
-                    y += granularity if isValueInBetween(self.alien_limits[Y], y + granularity) else 0
+                    y += granularity if isValueInBetween(
+                        self.alien_limits[Y], y + granularity) else 0
                 # move up
                 elif (keys[K_w]):
-                    y -= granularity if isValueInBetween(self.alien_limits[Y], y - granularity) else 0
+                    y -= granularity if isValueInBetween(
+                        self.alien_limits[Y], y - granularity) else 0
                 # changes shape forward
                 elif (keys[K_q]):
                     shape = self.alien_shapes[shape + 1] if isValueInBetween([0, len(self.alien_shapes) - 1],
@@ -171,7 +178,8 @@ class Application:
 
         # create a text surface object,
         # on which text is drawn on it.
-        text = self.font.render('({:.2f},{:.2f})'.format(*self.alien.get_centroid()), True, BLACK, WHITE)
+        text = self.font.render('({:.2f},{:.2f})'.format(
+            *self.alien.get_centroid()), True, BLACK, WHITE)
 
         # create a rectangular object for the
         # text surface object
@@ -200,16 +208,19 @@ class Application:
                         pygame.quit()
                         sys.exit()
                     if idx == 0:
-                        self.alien.set_alien_config([config[0], config[1], self.alien.get_shapes()[config[2]]])
+                        self.alien.set_alien_config(
+                            [config[0], config[1], self.alien.get_shapes()[config[2]]])
                         self.get_alien_color()
                         self.gameLoop()
                     else:
                         # interpolation
                         start_x, start_y = self.alien.get_centroid()
                         end_x, end_y = config[0], config[1]
-                        interp_x, interp_y = np.linspace(start_x, end_x, 20), np.linspace(start_y, end_y, 20)
+                        interp_x, interp_y = np.linspace(
+                            start_x, end_x, 20), np.linspace(start_y, end_y, 20)
                         for x, y in zip(interp_x, interp_y):
-                            self.alien.set_alien_config([x, y, self.alien.get_shapes()[config[2]]])
+                            self.alien.set_alien_config(
+                                [x, y, self.alien.get_shapes()[config[2]]])
                             self.get_alien_color()
                             self.gameLoop()
                             time.sleep(0.05)
@@ -221,21 +232,29 @@ class Application:
         shape_idx = self.alien_shapes.index(self.alien_shape)
         self.centroid = self.alien.get_centroid()
         if (self.alien_shape == 'Horizontal'):
-            head = (self.centroid[0] + self.lengths[shape_idx] / 2, self.centroid[1])
-            tail = (self.centroid[0] - self.lengths[shape_idx] / 2, self.centroid[1])
+            head = (self.centroid[0] +
+                    self.lengths[shape_idx] / 2, self.centroid[1])
+            tail = (self.centroid[0] -
+                    self.lengths[shape_idx] / 2, self.centroid[1])
         elif (self.alien_shape == 'Vertical'):
-            head = (self.centroid[0], self.centroid[1] + self.lengths[shape_idx] / 2)
-            tail = (self.centroid[0], self.centroid[1] - self.lengths[shape_idx] / 2)
+            head = (self.centroid[0], self.centroid[1] +
+                    self.lengths[shape_idx] / 2)
+            tail = (self.centroid[0], self.centroid[1] -
+                    self.lengths[shape_idx] / 2)
         elif (self.alien_shape == 'Ball'):
             head = (self.centroid[0], self.centroid[1])
             tail = (self.centroid[0], self.centroid[1])
-        pygame.draw.line(self.displaySurface, self.alien_color, head, tail, self.widths[shape_idx])
-        pygame.draw.circle(self.displaySurface, self.alien_color, head, self.widths[shape_idx] / 2)
-        pygame.draw.circle(self.displaySurface, self.alien_color, tail, self.widths[shape_idx] / 2)
+        pygame.draw.line(self.displaySurface, self.alien_color,
+                         head, tail, self.widths[shape_idx])
+        pygame.draw.circle(self.displaySurface, self.alien_color,
+                           head, self.widths[shape_idx] / 2)
+        pygame.draw.circle(self.displaySurface, self.alien_color,
+                           tail, self.widths[shape_idx] / 2)
 
     def drawObstacles(self):
         for obstacle in self.obstacles:
-            pygame.draw.line(self.displaySurface, BLACK, (obstacle[0], obstacle[1]), (obstacle[2], obstacle[3]))
+            pygame.draw.line(self.displaySurface, BLACK,
+                             (obstacle[0], obstacle[1]), (obstacle[2], obstacle[3]))
 
     def drawWayPoints(self):
         for waypoint in self.waypoints:
@@ -243,7 +262,8 @@ class Application:
 
     def drawGoal(self):
         for goal in self.goals:
-            pygame.draw.circle(self.displaySurface, BLUE, (goal[0], goal[1]), 5)
+            pygame.draw.circle(self.displaySurface, BLUE,
+                               (goal[0], goal[1]), 5)
 
 
 if __name__ == "__main__":
