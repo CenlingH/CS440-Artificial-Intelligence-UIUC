@@ -8,7 +8,7 @@
 # Created by Joshua Levine (joshua45@illinois.edu)
 # Inspired by work done by James Gao (jamesjg2@illinois.edu) and Jongdeog Lee (jlee700@illinois.edu)
 
-# 好难啊
+# 真的好难啊
 """
 This file contains geometry functions necessary for solving problems in MP5
 """
@@ -16,27 +16,54 @@ This file contains geometry functions necessary for solving problems in MP5
 import numpy as np
 from alien import Alien
 from typing import List, Tuple
-from copy import deepcopy
+# from copy import deepcopy
 
 
 def does_alien_touch_wall(alien: Alien, walls: List[Tuple[int]]):
     """Determine whether the alien touches a wall
 
-        Args:
-            alien (Alien): Instance of Alien class that will be navigating our map
-            walls (list): List of endpoints of line segments that comprise the walls in the maze in the format
-                         [(startx, starty, endx, endx), ...]
+    Args:
+        alien (Alien): Instance of Alien class that will be navigating our map
+        walls (list): List of endpoints of line segments that comprise the walls in the maze in the format
+                     [(startx, starty, endx, endx), ...]
 
-        Return:
-            True if touched, False if not
+    Return:
+        True if touched, False if not
     """
-    if alien.get_shape() == 'Ball':
+    centroid = alien.get_centroid()
+    shape = alien.get_shape()
+
+    def check_segment_intersection(segment1, segment2):
+        return do_segments_intersect(segment1, segment2)
+
+    if shape == 'Ball':
         for i in walls:
-            if point_segment_distance(alien.get_centroid(), i) <= alien.get_width():
+            s1 = (i[0], i[1])
+            s2 = (i[2], i[3])
+            if point_segment_distance(centroid, (s1, s2)) <= alien.get_width():
                 return True
-    elif alien.get_shape() == 'Horizontal':
+    else:
+        head, tail = sorted(alien.get_head_and_tail(),
+                            key=lambda point: point[0])
+        width = alien.get_width()
+
+        if shape == "Horizontal":
+            x1 = (head[0], head[1] - width)
+            y1 = (tail[0], tail[1] - width)
+            x2 = (head[0], head[1] + width)
+            y2 = (tail[0], tail[1] + width)
+        elif shape == "Vertical":
+            x1 = (head[0] - width, head[1])
+            y1 = (tail[0] - width, tail[1])
+            x2 = (head[0] + width, head[1])
+            y2 = (tail[0] + width, tail[1])
+
         for i in walls:
-            if point_segment_distance(alien.get_head_and_tail()[0], i) <= alien.get_width() or point_segment_distance(alien.get_head_and_tail()[1], i) <= alien.get_width():
+            s1 = (i[0], i[1])
+            s2 = (i[2], i[3])
+            if check_segment_intersection((x1, y1), (s1, s2)) or check_segment_intersection((x2, y2), (s1, s2)) or \
+                    point_segment_distance((head[0], head[1]), (s1, s2)) <= width or \
+                    point_segment_distance((tail[0], tail[1]), (s1, s2)) <= width:
                 return True
 
     return False
@@ -44,23 +71,37 @@ def does_alien_touch_wall(alien: Alien, walls: List[Tuple[int]]):
 
 def is_alien_within_window(alien: Alien, window: Tuple[int]):
     """Determine whether the alien stays within the window
-
-        Args:
+            Args:
             alien (Alien): Alien instance
             window (tuple): (width, height) of the window
     """
+    w_w = window[0]
+    w_h = window[1]
+    w1 = [(0, 0, 0, w_h),
+          (w_w, 0, w_w, w_h)]
+    w2 = [(0, 0, w_w, 0),
+          (0, w_h, w_w, w_h)]
+    center = alien.get_centroid()
+    shape = alien.get_shape()
+    for i in w1:
+        start = (i[0], i[1])
+        end = (i[2], i[3])
+        if shape == "Horizontal":
+            max_dis = alien.get_length() / 2 + alien.get_width()
+        else:
+            max_dis = alien.get_width()
+        if point_segment_distance(center, (start, end)) <= max_dis:
+            return False
+    for i in w2:
+        start = (i[0], i[1])
+        end = (i[2], i[3])
+        if shape == "Vertical":
+            max_dis = alien.get_length() / 2 + alien.get_width()
+        else:
+            max_dis = alien.get_width()
+        if point_segment_distance(center, (start, end)) <= max_dis:
+            return False
     return True
-
-
-# def is_point_in_polygon(point, polygon):
-    """Determine whether a point is in a parallelogram.
-    Note: The vertex of the parallelogram should be clockwise or counter-clockwise.
-
-        Args:
-            point (tuple): shape of (2, ). The coordinate (x, y) of the query point.
-            polygon (tuple): shape of (4, 2). The coordinate (x, y) of 4 vertices of the parallelogram.
-    """
-    return False
 
 
 def does_alien_path_touch_wall(alien: Alien, walls: List[Tuple[int]], waypoint: Tuple[int, int]):
@@ -75,7 +116,96 @@ def does_alien_path_touch_wall(alien: Alien, walls: List[Tuple[int]], waypoint: 
         Return:
             True if touched, False if not
     """
+    """Determine whether the alien's straight-line path from its current position to the waypoint touches a wall
 
+        Args:
+            alien (Alien): the current alien instance
+            walls (List of tuple): List of endpoints of line segments that comprise the walls in the maze in the format
+                         [(startx, starty, endx, endx), ...]
+            waypoint (tuple): the coordinate of the waypoint where the alien wants to move
+
+        Return:
+            True if touched, False if not
+    """
+    if does_alien_touch_wall(alien, walls):
+        return True
+    centroid = alien.get_centroid()
+    shape = alien.get_shape()
+    if centroid[0] == waypoint[0]:
+        if centroid[1] == waypoint[1]:
+            alien.set_alien_pos(waypoint)
+            if does_alien_touch_wall(alien, walls):
+                return True
+            return False
+        else:
+            dir1 = 1
+    elif centroid[1] == waypoint[1]:
+        dir1 = 0
+    else:
+        dir1 = 2
+
+    width = alien.get_width()
+    length = alien.get_length() / 2 + alien.get_width()
+    if dir1 == 1 and shape == "Vertical":
+        p = [(centroid[0] - width, centroid[1]),
+             (centroid[0] + width, centroid[1]),
+             (waypoint[0] + width, waypoint[1]),
+             (waypoint[0] - width, waypoint[1])]
+
+    if dir1 == 0 and shape == "Horizontal":
+        p = [(centroid[0], centroid[1] - width),
+             (centroid[0], centroid[1] + width),
+             (waypoint[0], waypoint[1] + width),
+             (waypoint[0], waypoint[1] - width)]
+    else:
+        if shape == "Ball":
+            vector = [waypoint[0] - centroid[0], waypoint[1] - centroid[1]]
+            if np.all(vector == 0) or np.all([1, 0] == 0):
+                c1 = 0
+            else:
+                c1 = np.dot(
+                    vector, [1, 0]) / (np.linalg.norm(vector) * np.linalg.norm([1, 0]))
+            c2 = np.sqrt(1 - c1 * c1)
+            p = [
+                (centroid[0] - c2*width, centroid[1] - width * c1),
+                (waypoint[0] - c2*width, waypoint[1] - width * c1),
+                (waypoint[0] + c2*width, waypoint[1] + width * c1),
+                (centroid[0] + c2*width, centroid[1] + width * c1)
+            ]
+        elif shape == "Vertical":
+            p = [
+                (centroid[0],  centroid[1] - length),
+                (waypoint[0], waypoint[1] - length),
+                (waypoint[0], waypoint[1] + length),
+                (centroid[0],  centroid[1] + length)
+            ]
+        elif shape == "Horizontal":
+            p = [
+                (centroid[0] + length,  centroid[1]),
+                (waypoint[0] + length, waypoint[1]),
+                (waypoint[0] - length, waypoint[1]),
+                (centroid[0] - length,  centroid[1])
+            ]
+    edges = [
+        (p[0], p[1]),
+        (p[1], p[2]),
+        (p[2], p[3]),
+        (p[3], p[0])
+    ]
+    for i in walls:
+        if is_point_in_polygon((i[0], i[1]), p):
+            return True
+        elif is_point_in_polygon((i[2], i[3]), p):
+            return True
+        else:
+            for j in edges:
+                if do_segments_intersect(((i[0], i[1]), (i[2], i[3])), j):
+                    return True
+    alien.set_alien_pos(waypoint)
+    if does_alien_touch_wall(alien, walls):
+        alien.set_alien_pos(centroid)
+        return True
+    alien.set_alien_pos(centroid)
     return False
 
 # ok
@@ -84,23 +214,35 @@ def does_alien_path_touch_wall(alien: Alien, walls: List[Tuple[int]], waypoint: 
 def point_segment_distance(p, s):
     """Compute the distance from the point to the line segment.
 
-        Args:
-            p: A tuple (x, y) of the coordinates of the point.
-            s: A tuple ((x1, y1), (x2, y2)) of coordinates indicating the endpoints of the segment.
+    Args:
+        p: A tuple (x, y) of the coordinates of the point.
+        s: A tuple ((x1, y1), (x2, y2)) of coordinates indicating the endpoints of the segment.
 
-        Return:
-            Euclidean distance from the point to the line segment.
+    Return:
+        Euclidean distance from the point to the line segment.
     """
-    # use s[0][0] and s[0][1] to represent the start end
+    # Calculate the differences in x and y coordinates between the segment endpoints
     delta_x = s[1][0] - s[0][0]
     delta_y = s[1][1] - s[0][1]
+
+    # Calculate the length of the line segment using the Pythagorean theorem
     len_s = np.sqrt(delta_x**2 + delta_y**2)
+
+    # Calculate the length of the vector from the point to the start of the segment
     len_p = np.sqrt((p[0]-s[0][0])**2 + (p[1]-s[0][1])**2)
+
+    # Calculate the dot product between the vector from the point to the start of the segment and the segment itself
     dot_product = (p[0]-s[0][0])*delta_x + (p[1]-s[0][1])*delta_y
+
+    # If the dot product is less than 0, the closest point is the start of the segment
     if dot_product < 0:
         return np.sqrt((p[0]-s[0][0])**2 + (p[1]-s[0][1])**2)
+
+    # If the dot product is greater than the square of the length of the segment, the closest point is the end of the segment
     elif dot_product > len_s**2:
         return np.sqrt((p[0]-s[1][0])**2 + (p[1]-s[1][1])**2)
+
+    # Otherwise, the closest point is somewhere along the segment, and we calculate the perpendicular distance (touying)
     else:
         touying = dot_product/len_s
         return np.sqrt(len_p**2 - touying**2)
@@ -178,7 +320,32 @@ def segment_distance(s1, s2):
 
 
 def is_point_in_polygon(point, polygon):
+    """Determine whether a point is in a parallelogram.
+    Note: The vertex of the parallelogram should be clockwise or counter-clockwise.
+
+        Args:
+            point (tuple): shape of (2, ). The coordinate (x, y) of the query point.
+            polygon (tuple): shape of (4, 2). The coordinate (x, y) of 4 vertices of the parallelogram.
+    """
     x, y = point
+    x1 = polygon[0][0]
+    y1 = polygon[0][1]
+    x2 = polygon[1][0]
+    y2 = polygon[1][1]
+    x3 = polygon[2][0]
+    y3 = polygon[2][1]
+    x4 = polygon[3][0]
+    y4 = polygon[3][1]
+    if x == x1 and x == x2 and x == x3 and x == x4:
+        if y >= min(y1, y2, y3, y4) and y <= max(y1, y2, y3, y4):
+            return True
+        else:
+            return False
+    if y == y1 and y == y2 and y == y3 and y == y4:
+        if x >= min(x1, x2, x3, x4) and x <= max(x1, x2, x3, x4):
+            return True
+        else:
+            return False
     n = len(polygon)
     inside = False
 
