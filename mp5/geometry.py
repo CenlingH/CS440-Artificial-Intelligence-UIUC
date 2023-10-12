@@ -8,6 +8,7 @@
 # Created by Joshua Levine (joshua45@illinois.edu)
 # Inspired by work done by James Gao (jamesjg2@illinois.edu) and Jongdeog Lee (jlee700@illinois.edu)
 
+# 好难啊
 """
 This file contains geometry functions necessary for solving problems in MP5
 """
@@ -29,6 +30,15 @@ def does_alien_touch_wall(alien: Alien, walls: List[Tuple[int]]):
         Return:
             True if touched, False if not
     """
+    if alien.get_shape() == 'Ball':
+        for i in walls:
+            if point_segment_distance(alien.get_centroid(), i) <= alien.get_width():
+                return True
+    elif alien.get_shape() == 'Horizontal':
+        for i in walls:
+            if point_segment_distance(alien.get_head_and_tail()[0], i) <= alien.get_width() or point_segment_distance(alien.get_head_and_tail()[1], i) <= alien.get_width():
+                return True
+
     return False
 
 
@@ -42,7 +52,7 @@ def is_alien_within_window(alien: Alien, window: Tuple[int]):
     return True
 
 
-def is_point_in_polygon(point, polygon):
+# def is_point_in_polygon(point, polygon):
     """Determine whether a point is in a parallelogram.
     Note: The vertex of the parallelogram should be clockwise or counter-clockwise.
 
@@ -65,7 +75,10 @@ def does_alien_path_touch_wall(alien: Alien, walls: List[Tuple[int]], waypoint: 
         Return:
             True if touched, False if not
     """
+
     return False
+
+# ok
 
 
 def point_segment_distance(p, s):
@@ -78,7 +91,19 @@ def point_segment_distance(p, s):
         Return:
             Euclidean distance from the point to the line segment.
     """
-    return -1
+    # use s[0][0] and s[0][1] to represent the start end
+    delta_x = s[1][0] - s[0][0]
+    delta_y = s[1][1] - s[0][1]
+    len_s = np.sqrt(delta_x**2 + delta_y**2)
+    len_p = np.sqrt((p[0]-s[0][0])**2 + (p[1]-s[0][1])**2)
+    dot_product = (p[0]-s[0][0])*delta_x + (p[1]-s[0][1])*delta_y
+    if dot_product < 0:
+        return np.sqrt((p[0]-s[0][0])**2 + (p[1]-s[0][1])**2)
+    elif dot_product > len_s**2:
+        return np.sqrt((p[0]-s[1][0])**2 + (p[1]-s[1][1])**2)
+    else:
+        touying = dot_product/len_s
+        return np.sqrt(len_p**2 - touying**2)
 
 
 def do_segments_intersect(s1, s2):
@@ -91,6 +116,45 @@ def do_segments_intersect(s1, s2):
         Return:
             True if line segments intersect, False if not.
     """
+    A, B = s1
+    C, D = s2
+
+    def on_segment(p, q, r):
+        """Check if point q lies on line segment pr."""
+        return (q[0] <= max(p[0], r[0]) and q[0] >= min(p[0], r[0]) and
+                q[1] <= max(p[1], r[1]) and q[1] >= min(p[1], r[1]))
+
+    def ori(p, q, r):
+        """Find the orientation of triplet (p, q, r)."""
+        val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1])
+        if val == 0:
+            return 0  # Collinear
+        return 1 if val > 0 else 2  # Clockwise or counterclockwise
+
+    # Check if the segments have any endpoints in common
+    if A == C or A == D or B == C or B == D:
+        return True
+
+    # Check for orientation of points
+    o1 = ori(A, B, C)
+    o2 = ori(A, B, D)
+    o3 = ori(C, D, A)
+    o4 = ori(C, D, B)
+
+    # Check for general case
+    if o1 != o2 and o3 != o4:
+        return True
+
+    # Check for special cases where the segments overlap
+    if o1 == 0 and on_segment(A, C, B):
+        return True
+    if o2 == 0 and on_segment(A, D, B):
+        return True
+    if o3 == 0 and on_segment(C, A, D):
+        return True
+    if o4 == 0 and on_segment(C, B, D):
+        return True
+
     return False
 
 
@@ -104,7 +168,35 @@ def segment_distance(s1, s2):
         Return:
             Euclidean distance between the two line segments.
     """
-    return -1
+    '''
+    segment_distance(segment1, segment2): Compute the Euclidean distance between two line segments, defined as the shortest distance between any pair of points on the two segments.
+    '''
+    if do_segments_intersect(s1, s2):
+        return 0
+    else:
+        return min(point_segment_distance(s1[0], s2), point_segment_distance(s1[1], s2), point_segment_distance(s2[0], s1), point_segment_distance(s2[1], s1))
+
+
+def is_point_in_polygon(point, polygon):
+    x, y = point
+    n = len(polygon)
+    inside = False
+
+    p1x, p1y = polygon[0]
+
+    for i in range(1, n + 1):
+        p2x, p2y = polygon[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        x_intersect = (y - p1y) * (p2x - p1x) / \
+                            (p2y - p1y) + p1x
+                        if p1x == p2x or x <= x_intersect:
+                            inside = not inside
+        p1x, p1y = p2x, p2y
+
+    return inside
 
 
 if __name__ == '__main__':
