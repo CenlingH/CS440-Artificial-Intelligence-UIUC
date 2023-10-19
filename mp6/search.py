@@ -18,7 +18,7 @@ This file contains search functions.
 # searchMethod is the search method specified by --method flag (bfs,astar)
 # You may need to slight change your previous search functions in MP1 since this is 3-d maze
 
-from collections import deque
+# from collections import deque
 import heapq
 
 
@@ -39,11 +39,38 @@ def search(maze, searchMethod):
 
 # TODO: VI
 def astar(maze):
+    starting_state = maze.get_start()
+    visited_states = {starting_state: (None, 0)}
+    frontier = []
+    heapq.heappush(frontier, starting_state)
+    while len(frontier) != 0:
+        current_state = heapq.heappop(frontier)
+        if current_state.is_goal():
+            break
+        for n in current_state.get_neighbors():
+            if n not in visited_states:
+                visited_states[n] = (current_state, n.dist_from_start)
+                heapq.heappush(frontier, n)
+            else:
+                if n.dist_from_start < visited_states[n][1]:
+                    visited_states[n] = (current_state, n.dist_from_start)
+                    index = next(
+                        (i for i, j in enumerate(frontier) if j == n), -1)
+                    if index > -1:
+                        frontier.remove(n)
+                        heapq.heappush(frontier, n)
+                    else:
+                        heapq.heappush(frontier, n)
+    if len(frontier) > 0:
+        return backtrack(visited_states, current_state)
     return None
 
 
-# Go backwards through the pointers in visited_states until you reach the starting state
-# NOTE: the parent of the starting state is None
-# TODO: VI
 def backtrack(visited_states, current_state):
-    return None
+    path = []
+    pre = visited_states[hash(current_state)][0]
+    path.append(current_state)
+    while (pre is not None):
+        path.insert(0, pre)
+        pre = visited_states[hash(pre)][0]
+    return path

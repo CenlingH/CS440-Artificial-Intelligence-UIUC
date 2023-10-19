@@ -1,4 +1,5 @@
-import copy
+from abc import ABC, abstractmethod
+# import copy
 import math
 from itertools import count
 
@@ -6,14 +7,14 @@ from itertools import count
 #       searches consecutively the index doesn't reset to 0... this is fine
 global_index = count()
 
-
+# 九月初四
 # TODO VI
 # Euclidean distance between two state tuples, of the form (x,y, shape)
+
+
 def euclidean_distance(a, b):
-    return 0
-
-
-from abc import ABC, abstractmethod
+    # not using shape
+    return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
 
 class AbstractState(ABC):
@@ -89,11 +90,23 @@ class MazeState(AbstractState):
         # if the shape changes, it will have a const cost of 10.
         # otherwise, the move cost will be the euclidean distance between the start and the end positions
         nbr_states = []
+        neighboring_grid_locs = self.maze_neighbors(*self.state)
+        for item in neighboring_grid_locs:
+            # state: (x, y, shape)
+            if self.state[2] != item[2]:
+                nbr_states.append(
+                    MazeState(item, self.goal, self.dist_from_start + 10, self.maze, self.use_heuristic))
+            else:
+                nbr_states.append(MazeState(
+                    item, self.goal, self.dist_from_start + euclidean_distance(self.state, item), self.maze, self.use_heuristic))
         return nbr_states
 
     # TODO VI
+
     def is_goal(self):
-        return True
+        if (self.state[0], self.state[1]) in self.goal:
+            return True
+        return False
 
     # We hash BOTH the state and the remaining goals
     #   This is because (x, y, h, (goal A, goal B)) is different from (x, y, h, (goal A))
@@ -101,22 +114,33 @@ class MazeState(AbstractState):
     # NOTE: the order of the goals in self.goal matters, needs to remain consistent
     # TODO VI
     def __hash__(self):
-        return 0
+        return hash(self.state)+hash(self.goal)
 
     # TODO VI
     def __eq__(self, other):
-        return True
+        return hash(self.state)+hash(self.goal) == hash(other.state)+hash(other.goal)
 
     # Our heuristic is: distance(self.state, nearest_goal)
     # We euclidean distance
     # TODO VI
     def compute_heuristic(self):
-        return 0
+        if len(self.goal) == 0:
+            return 0
+        nearest_goal = self.goal[0]
+        for item in self.goal:
+            if euclidean_distance(self.state, item) < euclidean_distance(self.state, nearest_goal):
+                nearest_goal = item
+        return euclidean_distance(self.state, nearest_goal)
 
     # This method allows the heap to sort States according to f = g + h value
     # TODO VI
     def __lt__(self, other):
-        pass
+        if self.dist_from_start+self.compute_heuristic() < other.dist_from_start+other.compute_heuristic():
+            return True
+        elif self.dist_from_start+self.compute_heuristic() == other.dist_from_start+other.compute_heuristic():
+            if self.tiebreak_idx < other.tiebreak_idx:
+                return True
+        return False
 
     # str and repr just make output more readable when your print out states
     def __str__(self):

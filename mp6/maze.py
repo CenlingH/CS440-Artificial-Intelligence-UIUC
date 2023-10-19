@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to the University of Illinois at Urbana-Champaign
-# 
+#
 # Created by Joshua Levine (joshua45@illinois.edu) and Jiaqi Gun
 """
 This file contains the Maze class, which reads in a maze file and creates
@@ -57,7 +57,8 @@ class Maze:
         # Goals are also viewed as a part of waypoints
         self.__waypoints = waypoints + goals
         self.__valid_waypoints = self.filter_valid_waypoints()
-        self.__start = MazeState(self.__start, self.get_objectives(), 0, self, self.use_heuristic)
+        self.__start = MazeState(
+            self.__start, self.get_objectives(), 0, self, self.use_heuristic)
 
         # self.__dimensions = [len(input_map), len(input_map[0]), len(input_map[0][0])]
         # self.__map = input_map
@@ -116,6 +117,11 @@ class Maze:
                 A dict with shape index as keys and the list of waypoints coordinates as values
         """
         valid_waypoints = {i: [] for i in range(len(self.alien.get_shapes()))}
+        for p in self.get_waypoints():
+            for i in range(len(self.alien.get_shapes())):
+                alien = self.create_new_alien(p[0], p[1], i)
+                if not does_alien_touch_wall(alien, self.walls):
+                    valid_waypoints[i].append(p)
         return valid_waypoints
 
     # TODO VI
@@ -125,9 +131,21 @@ class Maze:
                 cur_waypoint: (x, y) waypoint coordinate
                 cur_shape: shape index
             Return:
-                the k valid waypoints that are closest to waypoint
+                the k valid waypoints that are closest to waypoint  有self.k
         """
         nearest_neighbors = []
+        neighbors = []
+        for p in self.get_valid_waypoints()[cur_shape]:
+            neighbors.append(p)
+            sorted(neighbors,
+                   key=lambda x: euclidean_distance(x, cur_waypoint))
+        for i in range(len(neighbors)):
+            count = 0
+            if self.is_valid_move((cur_waypoint[0], cur_waypoint[1], cur_shape), (neighbors[i][0], neighbors[i][1], cur_shape)):
+                nearest_neighbors.append(neighbors[i])
+                count += 1
+            if count == self.k:
+                break
         return nearest_neighbors
 
     def create_new_alien(self, x, y, shape_idx):
@@ -144,6 +162,22 @@ class Maze:
             Return:
                 True if the move is valid, False otherwise
         """
+        if (0 <= start[2] <= 2) and (0 <= end[2] <= 2):
+            # 位置没变
+            if start[0] == end[0] and start[1] == end[1]:
+                if start[2] != end[2]:
+                    return not does_alien_touch_wall(self.create_new_alien(end[0], end[1], end[2]), self.walls)
+                else:
+                    return False
+            # 位置变了
+            else:
+                if start[2] != end[2]:
+                    return False
+                else:
+                    if not does_alien_path_touch_wall(self.create_new_alien(start[0], start[1], start[2]), self.walls, (end[0], end[1])):
+                        if not does_alien_touch_wall(self.create_new_alien(end[0], end[1], end[2]), self.walls):
+                            return True
+                    return False
         return False
 
     def get_neighbors(self, x, y, shape_idx):
