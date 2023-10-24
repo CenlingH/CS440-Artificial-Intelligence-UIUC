@@ -5,11 +5,12 @@ to predict the tag).
 """
 
 import math
-from collections import defaultdict
+from collections import defaultdict, Counter
 from math import log
-
+import pdb
 
 # Note: remember to use these two elements when you find a probability is 0 in the training data.
+# 这俩东西类似于alpha，其实本质上是一个预测（预测unk的具体数值）
 epsilon_for_pt = 1e-5
 emit_epsilon = 1e-5   # exact setting seems to have little or no effect
 # alpha = 1e-5
@@ -34,19 +35,21 @@ def training(sentences):
     wordset = set()
     for s in sentences:
         for word, tag in s:
-            tagset.add(tag)
-            wordset.add(word)
+            if tag not in tagset:
+                tagset.add(tag)
+            if word not in wordset:
+                wordset.add(word)
 
     # compute init_prob
     for s in sentences:
         init_prob[s[0][1]] += 1
-    for i in init_prob:
+    for i in init_prob:  # i是tag
         init_prob[i] /= len(sentences)
 
     # compute emit_prob
     for s in sentences:
         for (word_keys, tag_keys) in s:
-            emit_prob[tag_keys][word_keys] += 1
+            emit_prob[tag_keys][word_keys] += 1  # 现在有tag下每个word的数量
     for tag in tagset:
         if tag not in emit_prob:
             emit_prob[tag] = {}
@@ -57,19 +60,22 @@ def training(sentences):
             emit_prob[tag_keys][word_keys] = (
                 emit_prob[tag_keys][word_keys] + emit_epsilon) / (n+emit_epsilon * (V+1))
         emit_prob[tag_keys]['UNK'] = emit_epsilon / (n+emit_epsilon * (V+1))
+
     # compute trans_prob
     for s in sentences:
         for i in range(len(s)-1):
             trans_prob[s[i][1]][s[i+1][1]] += 1
+
     for tag in tagset:
         if tag not in trans_prob:
             trans_prob[tag] = {}
+
     for tag_pre_keys in trans_prob:
         V = len(trans_prob[tag_pre_keys])
         n = sum(trans_prob[tag_pre_keys].values())
         for tag_later_keys in trans_prob[tag_pre_keys]:
-            trans_prob[tag_pre_keys][tag_later_keys] = (
-                trans_prob[tag_pre_keys][tag_later_keys] + epsilon_for_pt) / (n+epsilon_for_pt * (V+1))
+            trans_prob[tag_pre_keys][tag_later_keys] = trans_prob[tag_pre_keys][tag_later_keys] + \
+                epsilon_for_pt / (n+epsilon_for_pt * (V+1))
         trans_prob[tag_pre_keys]['UNK'] = epsilon_for_pt / \
             (n+epsilon_for_pt * (V+1))
     return init_prob, emit_prob, trans_prob
@@ -149,10 +155,14 @@ def viterbi_1(train, test, get_probs=training):
             log_prob, predict_tag_seq = viterbi_stepforward(
                 i, sentence[i], log_prob, predict_tag_seq, emit_prob, trans_prob)
 
+            # print("111111111:", log_prob)
+            # print("333333333:", predict_tag_seq)
+
         # TODO:(III)
         # according to the storage of probabilities and sequences, get the final prediction.
 
         max_tag = max(log_prob, key=log_prob.get)
         predicts.append([(sentence[i], predict_tag_seq[max_tag][i])
                          for i in range(length)])
+    # print("5555555555:", max_tag)
     return predicts
