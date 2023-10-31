@@ -397,7 +397,10 @@ def training(sentences):
         emit_prob[tag_keys]['start_with'] = with_epsilon / \
             (n+with_epsilon * (V+1))
 
-        unk_epsilon = emit_epsilon_new-epsilon_est-epsilon_ion
+        unk_epsilon = emit_epsilon_new-epsilon_est-epsilon_ion-epsilon_ful-epsilon_ed-epsilon_ly-epsilon_er-a_epsilonnt-epsilon_th-epsilon_ship-epsilon_ing-epsilon_ment-epsilon_ness-epsilon_able-ise_epsilon-en_epsilon - \
+            ive_epsilon-or_epsilon-ness_epsilon-less_epsilon-ity_epsilon-s_epsilon-a_epsilon-be_epsilon-de_epsilon-dis_epsilon - \
+            ex_epsilon-in_epsilon-mis_epsilon-non_epsilon-over_epsilon - \
+            pre_epsilon-re_epsilon-uni_epsilon-with_epsilon
         emit_prob[tag_keys]['UNK'] = unk_epsilon / \
             (n+unk_epsilon * (V+1))
 
