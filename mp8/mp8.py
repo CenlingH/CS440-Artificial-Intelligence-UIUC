@@ -20,19 +20,22 @@ def main(args):
 
     algorithms = {"viterbi_2": viterbi_2, "viterbi_3": viterbi_3}
     algorithm = algorithms[args.algorithm]
-    
+
     print("Running {}...".format(args.algorithm))
     testtag_predictions = algorithm(train_set, utils.strip_tags(test_set))
     baseline_acc, correct_wordtagcounter, wrong_wordtagcounter = utils.evaluate_accuracies(testtag_predictions,
                                                                                            test_set)
-    multitags_acc, unseen_acc, = utils.specialword_accuracies(train_set, testtag_predictions, test_set)
+    multitags_acc, unseen_acc, = utils.specialword_accuracies(
+        train_set, testtag_predictions, test_set)
 
     print("Accuracy: {:.2f}%".format(baseline_acc * 100))
     print("\tMultitags Accuracy: {:.2f}%".format(multitags_acc * 100))
     print("\tUnseen words Accuracy: {:.2f}%".format(unseen_acc * 100))
-    print("\tTop K Wrong Word-Tag Predictions: {}".format(utils.topk_wordtagcounter(wrong_wordtagcounter, k=4)))
-    print("\tTop K Correct Word-Tag Predictions: {}".format(utils.topk_wordtagcounter(correct_wordtagcounter, k=4)))
-    
+    print("\tTop K Wrong Word-Tag Predictions: {}".format(
+        utils.topk_wordtagcounter(wrong_wordtagcounter, k=4)))
+    print("\tTop K Correct Word-Tag Predictions: {}".format(
+        utils.topk_wordtagcounter(correct_wordtagcounter, k=4)))
+
     print()
 
 

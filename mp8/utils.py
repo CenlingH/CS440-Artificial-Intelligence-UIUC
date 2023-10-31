@@ -10,14 +10,16 @@ def evaluate_accuracies(predicted_sentences, tag_sentences):
     :param tag_sentences:
     :return: (Accuracy, correct word-tag counter, wrong word-tag counter)
     """
-    assert len(predicted_sentences) == len(tag_sentences), "The number of predicted sentence {} does not match the true number {}".format(len(predicted_sentences), len(tag_sentences))
+    assert len(predicted_sentences) == len(tag_sentences), "The number of predicted sentence {} does not match the true number {}".format(
+        len(predicted_sentences), len(tag_sentences))
 
     correct_wordtagcounter = {}
     wrong_wordtagcounter = {}
     correct = 0
     wrong = 0
     for pred_sentence, tag_sentence in zip(predicted_sentences, tag_sentences):
-        assert len(pred_sentence) == len(tag_sentence), "The predicted sentence length {} does not match the true length {}".format(len(pred_sentence), len(tag_sentence))
+        assert len(pred_sentence) == len(tag_sentence), "The predicted sentence length {} does not match the true length {}".format(
+            len(pred_sentence), len(tag_sentence))
         for pred_wordtag, real_wordtag in zip(pred_sentence, tag_sentence):
             assert pred_wordtag[0] == real_wordtag[0], "The predicted sentence WORDS do not match with the original sentence, you should only be predicting the tags"
             word = pred_wordtag[0]
@@ -46,7 +48,8 @@ def specialword_accuracies(train_sentences, predicted_sentences, tag_sentences):
     :param tag_sentences:
     :return: Accuracy on words with multiple tags, and accuracy on words that do not occur in the training sentences
     """
-    seen_words, words_with_multitags_set = get_word_tag_statistics(train_sentences)
+    seen_words, words_with_multitags_set = get_word_tag_statistics(
+        train_sentences)
     multitags_correct = 0
     multitags_wrong = 0
     unseen_correct = 0
@@ -69,7 +72,8 @@ def specialword_accuracies(train_sentences, predicted_sentences, tag_sentences):
                     multitags_wrong += 1
                 if word not in seen_words:
                     unseen_wrong += 1
-    multitag_accuracy = multitags_correct / (multitags_correct + multitags_wrong)
+    multitag_accuracy = multitags_correct / \
+        (multitags_correct + multitags_wrong)
     total_unseen = unseen_correct + unseen_wrong
     unseen_accuracy = unseen_correct / total_unseen if total_unseen > 0 else 0
 
@@ -77,7 +81,8 @@ def specialword_accuracies(train_sentences, predicted_sentences, tag_sentences):
 
 
 def topk_wordtagcounter(wordtagcounter, k):
-    top_items = sorted(wordtagcounter.items(), key=lambda item: sum(item[1].values()), reverse=True)[:k]
+    top_items = sorted(wordtagcounter.items(), key=lambda item: sum(
+        item[1].values()), reverse=True)[:k]
     top_items = list(map(lambda item: (item[0], dict(item[1])), top_items))
     return top_items
 
