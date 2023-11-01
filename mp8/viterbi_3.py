@@ -401,11 +401,8 @@ def training(sentences):
             epsilon_or - epsilon_ness - epsilon_less - epsilon_ity - epsilon_s - a_epsilon - be_epsilon - de_epsilon - dis_epsilon - \
             ex_epsilon - in_epsilon - mis_epsilon - non_epsilon - over_epsilon - \
             pre_epsilon - re_epsilon - uni_epsilon - with_epsilon
-        # !!!! don't use the unk_epsilon above because it makes the code fail to pass some test cases, but I don't know why
-        # but if I use unk_epsilon=emit_epsilon_new-epsilon_est-epsilon_ion, it works well on gradscope
-        # 估计是之前哪算错了，我也不打算找了，反正gradescope能过就ok了
-        unk_epsilon_1 = emit_epsilon_new-epsilon_est-epsilon_ion
-        print(unk_epsilon)
+        if unk_epsilon <= 0:
+            unk_epsilon = 1e-30
         emit_prob[tag_keys]['UNK'] = unk_epsilon / \
             (n+unk_epsilon * (V+1))
 
