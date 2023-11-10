@@ -14,11 +14,8 @@ The unrevised staff files will be used for all other files and classes when code
 so be careful to not modify anything else.
 """
 
-import numpy as np
-
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from utils import get_dataset_from_arrays
 from torch.utils.data import DataLoader
@@ -39,15 +36,23 @@ class NeuralNet(nn.Module):
 
         For Part 1 the network should have the following architecture (in terms of hidden units):
         in_size -> h -> out_size , where  1 <= h <= 256
-        
+
         We recommend setting lrate to 0.01 for part 1.
 
         """
         super(NeuralNet, self).__init__()
         self.loss_fn = loss_fn
-
-        raise NotImplementedError("You need to write this part!")
-    
+        self.in_size = in_size
+        self.out_size = out_size
+        self.lrate = lrate
+        self.func = nn.Sequential(
+            nn.Linear(in_size, 64),
+            nn.Sigmoid(),
+            nn.Linear(64, out_size)
+        )
+        # 创建一个随机梯度下降的实例
+        self.optimizer = optim.SGD(
+            self.parameters(), self.lrate, momentum=0.9)
 
     def forward(self, x):
         """
@@ -56,8 +61,7 @@ class NeuralNet(nn.Module):
         @param x: an (N, in_size) Tensor
         @return y: an (N, out_size) Tensor of output from the network
         """
-        raise NotImplementedError("You need to write this part!")
-        return torch.ones(x.shape[0], 1)
+        return self.func(x)
 
     def step(self, x, y):
         """
@@ -67,12 +71,15 @@ class NeuralNet(nn.Module):
         @param y: an (N,) Tensor
         @return L: total empirical risk (mean of losses) for this batch as a float (scalar)
         """
-        raise NotImplementedError("You need to write this part!")
-        return 0.0
+        self.optimizer.zero_grad()
+        yhat = self.forward(x)
+        loss = self.loss_fn(yhat, y)
+        loss.backward()
+        self.optimizer.step()
+        return loss.item()
 
 
-
-def fit(train_set,train_labels,dev_set,epochs,batch_size=100):
+def fit(train_set, train_labels, dev_set, epochs, batch_size=100):
     """ 
     Make NeuralNet object 'net'. Use net.step() to train a neural net
     and net(x) to evaluate the neural net.
@@ -93,5 +100,22 @@ def fit(train_set,train_labels,dev_set,epochs,batch_size=100):
     @return yhats: an (M,) NumPy array of binary labels for dev_set
     @return net: a NeuralNet object
     """
-    raise NotImplementedError("You need to write this part!")
-    return [],[],None
+    net = NeuralNet(0.01, nn.CrossEntropyLoss(),
+                    train_set.shape[-1], train_labels.max()+1)
+    mean = train_set.mean()
+    std = train_set.std()
+    train_set = (train_set-mean)/std
+    data = get_dataset_from_arrays(train_set, train_labels)
+    losses = []
+    for i in range(epochs):
+        loss = 0
+        for batch in DataLoader(data, batch_size=batch_size, shuffle=False):
+            X, Y = batch['features'], batch['labels']
+            loss = net.step(X, Y)
+        losses.append(loss)
+    mean = dev_set.mean()
+    std = dev_set.std()
+    dev_set = (dev_set - mean) / std  # 在没有梯度的情况下执行以下操作
+    with torch.no_grad():
+        yhats = net(dev_set).argmax(dim=-1).detach().numpy()
+    return losses, yhats, net

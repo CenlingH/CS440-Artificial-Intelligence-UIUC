@@ -1,7 +1,8 @@
 from reader import MP10Dataset
-import numpy as np 
+import numpy as np
 
-def get_dataset_from_arrays(x,y):
+
+def get_dataset_from_arrays(x, y):
     """This function returns a valid pytorch dataset from feature and label vectors
 
     Args:
@@ -11,22 +12,26 @@ def get_dataset_from_arrays(x,y):
     Returns:
         [Dataset]: a valid pytorch dataset which you can use with the pytorch dataloaders
     """
-    return MP10Dataset(x,y)
+    return MP10Dataset(x, y)
+
 
 def compute_accuracies(predicted_labels, dev_set, dev_labels):
     yhats = predicted_labels
-    assert predicted_labels.dtype == np.int, "Your predicted labels have type {}, but they should have type np.int (consider using .astype(int) on your output)".format(predicted_labels.dtype)
+    assert predicted_labels.dtype == np.int64, "Your predicted labels have type {}, but they should have type np.int (consider using .astype(int) on your output)".format(
+        predicted_labels.dtype)
 
     if len(yhats) != len(dev_labels):
-        print("Lengths of predicted labels don't match length of actual labels", len(yhats), len(dev_labels))
+        print("Lengths of predicted labels don't match length of actual labels", len(
+            yhats), len(dev_labels))
         return 0., 0., 0., 0.
-    
+
     accuracy = np.mean(yhats == dev_labels)
     conf_m = np.zeros((len(np.unique(dev_labels)), len(np.unique(dev_labels))))
-    for i,j in zip(dev_labels, predicted_labels):
-        conf_m[i,j] +=1
+    for i, j in zip(dev_labels, predicted_labels):
+        conf_m[i, j] += 1
 
     return accuracy, conf_m
+
 
 def get_parameter_counts(net):
     """ Get the parameters of your network
@@ -34,6 +39,6 @@ def get_parameter_counts(net):
             num_params: count of the total number of parameters
     """
     params = net.parameters()
-    num_parameters = sum([ np.prod(w.shape) for w  in params])
-    
+    num_parameters = sum([np.prod(w.shape) for w in params])
+
     return num_parameters, params

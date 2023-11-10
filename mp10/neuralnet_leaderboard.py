@@ -39,7 +39,7 @@ class NeuralNet(nn.Module):
 
         For Part 1 the network should have the following architecture (in terms of hidden units):
         in_size -> h -> out_size , where  1 <= h <= 256
-        
+
         We recommend setting lrate to 0.01 for part 1.
 
         """
@@ -47,7 +47,6 @@ class NeuralNet(nn.Module):
         self.loss_fn = loss_fn
 
         raise NotImplementedError("You need to write this part!")
-    
 
     def forward(self, x):
         """
@@ -71,8 +70,7 @@ class NeuralNet(nn.Module):
         return 0.0
 
 
-
-def fit(train_set,train_labels,dev_set,epochs,batch_size=100):
+def fit(train_set, train_labels, dev_set, epochs, batch_size=100):
     """ 
     Make NeuralNet object 'net'. Use net.step() to train a neural net
     and net(x) to evaluate the neural net.
@@ -94,4 +92,4 @@ def fit(train_set,train_labels,dev_set,epochs,batch_size=100):
     @return net: a NeuralNet object
     """
     raise NotImplementedError("You need to write this part!")
-    return [],[],None
+    return [], [], None
