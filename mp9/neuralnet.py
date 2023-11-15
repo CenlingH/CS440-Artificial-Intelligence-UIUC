@@ -14,8 +14,11 @@ The unrevised staff files will be used for all other files and classes when code
 so be careful to not modify anything else.
 """
 
+import numpy as np
+
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 from utils import get_dataset_from_arrays
 from torch.utils.data import DataLoader
@@ -42,15 +45,15 @@ class NeuralNet(nn.Module):
         """
         super(NeuralNet, self).__init__()
         self.loss_fn = loss_fn
+        # 开始
         self.in_size = in_size
         self.out_size = out_size
         self.lrate = lrate
         self.func = nn.Sequential(
-            nn.Linear(in_size, 64),
-            nn.Sigmoid(),
-            nn.Linear(64, out_size)
+            nn.Linear(in_size, 256),
+            nn.ReLU(),
+            nn.Linear(256, out_size)
         )
-        # 创建一个随机梯度下降的实例
         self.optimizer = optim.SGD(
             self.parameters(), self.lrate, momentum=0.9)
 
@@ -100,6 +103,8 @@ def fit(train_set, train_labels, dev_set, epochs, batch_size=100):
     @return yhats: an (M,) NumPy array of binary labels for dev_set
     @return net: a NeuralNet object
     """
+    # 开始
+
     net = NeuralNet(0.01, nn.CrossEntropyLoss(),
                     train_set.shape[-1], train_labels.max()+1)
     mean = train_set.mean()
@@ -107,15 +112,18 @@ def fit(train_set, train_labels, dev_set, epochs, batch_size=100):
     train_set = (train_set-mean)/std
     data = get_dataset_from_arrays(train_set, train_labels)
     losses = []
+    net.train()
     for i in range(epochs):
         loss = 0
         for batch in DataLoader(data, batch_size=batch_size, shuffle=False):
-            X, Y = batch['features'], batch['labels']
-            loss = net.step(X, Y)
+            x, y = batch['features'], batch['labels']
+            loss = net.step(x, y)
         losses.append(loss)
-    mean = dev_set.mean()
-    std = dev_set.std()
-    dev_set = (dev_set - mean) / std  # 在没有梯度的情况下执行以下操作
+
+    net.eval()
+    dev_set = (dev_set - mean) / std
     with torch.no_grad():
-        yhats = net(dev_set).argmax(dim=-1).detach().numpy()
+        pred = net(dev_set)
+        yhats = pred.argmax(-1).detach().numpy()
+
     return losses, yhats, net
