@@ -9,16 +9,13 @@
 # Modified by James Soole for the Fall 2023 semester
 
 """
-This is the main entry point for MP10. You should only modify code within this file.
+This is the main entry point for MP9. You should only modify code within this file.
 The unrevised staff files will be used for all other files and classes when code is run, 
 so be careful to not modify anything else.
 """
 
-import numpy as np
-
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from utils import get_dataset_from_arrays
 from torch.utils.data import DataLoader
@@ -45,8 +42,20 @@ class NeuralNet(nn.Module):
         """
         super(NeuralNet, self).__init__()
         self.loss_fn = loss_fn
+        self.in_size = in_size
+        self.out_size = out_size
+        self.lrate = lrate
 
-        raise NotImplementedError("You need to write this part!")
+        # 添加卷积层
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
+
+        # 添加全连接层
+        self.func = nn.Linear(64*7*7, out_size)
+
+        # 创建一个随机梯度下降的实例
+        self.optimizer = optim.SGD(
+            self.parameters(), self.lrate, momentum=0.9)
 
     def forward(self, x):
         """
@@ -55,9 +64,15 @@ class NeuralNet(nn.Module):
         @param x: an (N, in_size) Tensor
         @return y: an (N, out_size) Tensor of output from the network
         """
-        raise NotImplementedError("You need to write this part!")
-        return torch.ones(x.shape[0], 1)
+        x = x.view(-1, 3, 31, 31)
+        x = nn.functional.relu(self.conv1(x))
+        x = nn.functional.max_pool2d(x, 2)
+        x = nn.functional.relu(self.conv2(x))
+        x = nn.functional.max_pool2d(x, 2)
+        x = x.view(-1, 64*7*7)
+        return self.func(x)
 
+# 下面俩函数没改
     def step(self, x, y):
         """
         Performs one gradient step through a batch of data x with labels y.
@@ -66,8 +81,12 @@ class NeuralNet(nn.Module):
         @param y: an (N,) Tensor
         @return L: total empirical risk (mean of losses) for this batch as a float (scalar)
         """
-        raise NotImplementedError("You need to write this part!")
-        return 0.0
+        self.optimizer.zero_grad()
+        yhat = self.forward(x)
+        loss = self.loss_fn(yhat, y)
+        loss.backward()
+        self.optimizer.step()
+        return loss.item()
 
 
 def fit(train_set, train_labels, dev_set, epochs, batch_size=100):
@@ -91,5 +110,22 @@ def fit(train_set, train_labels, dev_set, epochs, batch_size=100):
     @return yhats: an (M,) NumPy array of binary labels for dev_set
     @return net: a NeuralNet object
     """
-    raise NotImplementedError("You need to write this part!")
-    return [], [], None
+    net = NeuralNet(0.01, nn.CrossEntropyLoss(),
+                    train_set.shape[-1], train_labels.max()+1)
+    mean = train_set.mean()
+    std = train_set.std()
+    train_set = (train_set-mean)/std
+    data = get_dataset_from_arrays(train_set, train_labels)
+    losses = []
+    for i in range(epochs):
+        loss = 0
+        for batch in DataLoader(data, batch_size=batch_size, shuffle=False):
+            X, Y = batch['features'], batch['labels']
+            loss = net.step(X, Y)
+        losses.append(loss)
+    mean = dev_set.mean()
+    std = dev_set.std()
+    dev_set = (dev_set - mean) / std
+    with torch.no_grad():
+        yhats = net(dev_set).argmax(dim=-1).detach().numpy()
+    return losses, yhats, net
