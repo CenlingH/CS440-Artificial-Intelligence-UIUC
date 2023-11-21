@@ -21,7 +21,8 @@ class Application:
         self.args = args
         self.env = SnakeEnv(args.snake_head_x, args.snake_head_y, args.food_x, args.food_y,
                             args.width, args.height, rock_x=args.rock_x, rock_y=args.rock_y)
-        self.agent = Agent(self.env.get_actions(), args.Ne, args.C, args.gamma, args.width, args.height)
+        self.agent = Agent(self.env.get_actions(), args.Ne,
+                           args.C, args.gamma, args.width, args.height)
 
     def execute(self):
         if self.args.early_check:
@@ -31,7 +32,8 @@ class Application:
 
             # check state discretization
             gold_results = np.array(discret_results)
-            test_results = np.array([self.agent.generate_state(env) for env in envs])
+            test_results = np.array(
+                [self.agent.generate_state(env) for env in envs])
             if not np.array_equal(test_results, gold_results):
                 print("Warning: Your discretized states do not match gold ones")
                 match = False
@@ -60,7 +62,8 @@ class Application:
 
                     if self.agent.s is not None and self.agent.a is not None:
                         self.agent.update_n(self.agent.s, self.agent.a)
-                        self.agent.update_q(self.agent.s, self.agent.a, 0.1, s_prime)
+                        self.agent.update_q(
+                            self.agent.s, self.agent.a, 0.1, s_prime)
 
                     # For debug convenience, the path to the gold tables are hardcoded here
                     # (see Debugging Examples section in spec)
@@ -70,14 +73,18 @@ class Application:
                     self.agent.s = s_prime
                     self.agent.a = action
 
-                # load gold table 
-                gold_Q = np.load('./data/early_check/game_' + str(game) + '.npy')
-                gold_N = np.load('./data/early_check/game_' + str(game) + '_N.npy')
+                # load gold table
+                gold_Q = np.load(
+                    './data/early_check/game_' + str(game) + '.npy')
+                gold_N = np.load('./data/early_check/game_' +
+                                 str(game) + '_N.npy')
                 if not np.array_equal(self.agent.Q, gold_Q):
-                    print("Warning: Your Q table does not match gold table for game", game)
+                    print(
+                        "Warning: Your Q table does not match gold table for game", game)
                     match = False
                 elif not np.array_equal(self.agent.N, gold_N):
-                    print("Warning: Your N table does not match gold table for game", game)
+                    print(
+                        "Warning: Your N table does not match gold table for game", game)
                     match = False
 
             if match:
@@ -144,11 +151,12 @@ class Application:
             snake_head_x, snake_head_y, food_x, food_y, width, height, rock_x, rock_y = cond
             self.agent.display_width = width
             self.agent.display_height = height
-            self.env = SnakeEnv(snake_head_x, snake_head_y, food_x, food_y, width, height, rock_x, rock_y)
+            self.env = SnakeEnv(snake_head_x, snake_head_y,
+                                food_x, food_y, width, height, rock_x, rock_y)
             print('Testing init condition {}: snake_x: {} snake_y: {} food_x: {}, food_y: {}, '
                   'width: {}, height: {}, rock_x: {}, rock_y: {}'.format(
-                i, snake_head_x, snake_head_y, food_x, food_y, width, height, rock_x, rock_y)
-            )
+                      i, snake_head_x, snake_head_y, food_x, food_y, width, height, rock_x, rock_y)
+                  )
             points_results = []
             for game in range(1, self.args.test_eps + 1):
                 environment = self.env.get_environment()
@@ -162,11 +170,13 @@ class Application:
                 self.env.reset()
 
             print(f"Number of Games: {len(points_results)}")
-            print(f"Average Points: {sum(points_results) / len(points_results)}")
+            print(
+                f"Average Points: {sum(points_results) / len(points_results)}")
             print(f"Max Points: {max(points_results)}")
             print(f"Min Points: {min(points_results)}")
             print(f"Testing takes {time.time() - start} seconds")
-            all_points_results.append(sum(points_results) / len(points_results))
+            all_points_results.append(
+                sum(points_results) / len(points_results))
         return all_points_results
 
     def show_games(self):
@@ -210,7 +220,8 @@ class Application:
                 break
             self.env.reset()
             points_results.append(points)
-            print("Game:", str(game) + "/" + str(self.args.show_eps), "Points:", points)
+            print("Game:", str(game) + "/" +
+                  str(self.args.show_eps), "Points:", points)
         if len(points_results) == 0:
             return
         print("Average Points:", sum(points_results) / len(points_results))
@@ -266,10 +277,14 @@ def main():
     parser.add_argument('--food_y', dest="food_y", type=int, default=2,
                         help='initialized y position of food  - default 2')
 
-    parser.add_argument('--width', type=int, default=18, help='The width of playing area - default 18')
-    parser.add_argument('--height', type=int, default=10, help='The height of playing area - default 10')
-    parser.add_argument('--rock_x', dest='rock_x', type=int, default=1, help='x position of the rock - default 1')
-    parser.add_argument('--rock_y', dest='rock_y', type=int, default=1, help='y position of the rock - default 1')
+    parser.add_argument('--width', type=int, default=18,
+                        help='The width of playing area - default 18')
+    parser.add_argument('--height', type=int, default=10,
+                        help='The height of playing area - default 10')
+    parser.add_argument('--rock_x', dest='rock_x', type=int,
+                        default=1, help='x position of the rock - default 1')
+    parser.add_argument('--rock_y', dest='rock_y', type=int,
+                        default=1, help='y position of the rock - default 1')
 
     args = parser.parse_args()
     app = Application(args)

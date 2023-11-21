@@ -15,10 +15,10 @@ class Agent:
         # Create the Q Table to work with
         self.Q = utils.create_q_table()
         self.N = utils.create_q_table()
-        
+
     def train(self):
         self._train = True
-        
+
     def eval(self):
         self._train = False
 
@@ -40,14 +40,14 @@ class Agent:
         self.points = 0
         self.s = None
         self.a = None
-    
+
     def update_n(self, state, action):
-        # TODO - MP11: Update the N-table. 
+        # TODO - MP11: Update the N-table.
         pass
 
     def update_q(self, s, a, r, s_prime):
-        # TODO - MP11: Update the Q-table. 
-        pass        
+        # TODO - MP11: Update the Q-table.
+        pass
 
     def act(self, environment, points, dead):
         '''
@@ -71,6 +71,6 @@ class Agent:
         :param environment: a list of [snake_head_x, snake_head_y, snake_body, food_x, food_y, rock_x, rock_y] to be converted to a state.
         All of these are just numbers, except for snake_body, which is a list of (x,y) positions 
         '''
-        # TODO - MP11: Implement this helper function that generates a state given an environment 
+        # TODO - MP11: Implement this helper function that generates a state given an environment
 
         return None
