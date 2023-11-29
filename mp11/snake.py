@@ -220,7 +220,7 @@ class Snake:
         # Check if collide with the wall (left, top, right, bottom)
         # Again, views grid position wrt top left corner of square
         if (self.snake_head_x < 1 or self.snake_head_y < 1 or
-                self.snake_head_x + 1 > self.display_width-1 or self.snake_head_y + 1 > self.display_height-1):
+                self.snake_head_x + 1 > self.display_width - 1 or self.snake_head_y + 1 > self.display_height - 1):
             return True
 
         # Check if collide with the rock
